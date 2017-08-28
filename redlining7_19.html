@@ -1,0 +1,316 @@
+
+<script type="text/javascript" src="http://lenagroeger.s3.amazonaws.com/talks/common/jquery.js"></script>
+<script type="text/javascript" src="underscore.js"></script>
+
+<script type="text/javascript" src="data/latlongs.js"></script>
+
+<style>
+
+* {
+    -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+
+}
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.map-container {
+  width: 100%;
+  display: inline-block;
+}
+.map-container > div {
+  float: left;
+}
+
+#sidebar {
+  width: 18%;
+  min-width: 100px;
+  padding: 10px;
+  font-family: Helvetica, sans-serif;
+  font-weight: bold;
+  font-size: 13px;
+  color:#444;
+}
+
+#nav .nav-item {
+  cursor: pointer;
+  padding:5px;
+}
+
+#nav .nav-item:hover, #nav .nav-item.active {
+  color: orange
+}
+
+#map {
+  width: 82%;
+  height: 100%;
+}
+
+#legend {
+  border-top: 1px solid #cecece;
+  padding-top: 20px;
+  margin-top: 50px;
+}
+
+.legend-item {
+  width: 100%;
+  display: inline-block;
+  margin:5px;
+
+}
+
+.legend-item span {
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+    margin-right: 10px;
+    float: left;
+}
+
+.legend-item p {
+  margin: 0px;
+  float: left;
+  max-width: 75%
+}
+
+.legend-item.circle span {
+    border-radius: 50%;
+    width: 5px;
+    height: 5px;
+    margin: 10px 15px 0px 5px;
+}
+
+
+.legend-item.housing span {
+  background: url("red-dot.png") no-repeat 50% 0%;
+  width: 10px;
+  height: 10px;
+  margin-right: 10px;
+}
+
+.legend-item.lowincome span {
+  background: url("yellow-dot.png") no-repeat 50% 0%;
+  width: 10px;
+  height: 10px;
+  margin-right: 10px;
+}
+
+
+.legend-item.population span {
+  background: #000
+}
+
+.legend-item em {
+  font-size: 11px;
+  font-weight: normal;
+  letter-spacing: .02em;
+  margin-top: 3px;
+  display: inline-block;
+}
+
+.legend-item.area-a span {
+  background: #5e8f45
+}
+.legend-item.area-b span {
+  background: #36879b
+}
+.legend-item.area-c span {
+  background: #e0bc3d
+}
+.legend-item.area-d span {
+  background: #d66969
+}
+
+</style>
+
+
+
+<div class="map-container">
+<div id="sidebar">
+  <div id="nav">
+    <div class="nav-item active" data="sf">San Francisco</div>
+    <div class="nav-item" data="oak">Oakland</div>
+    <div class="nav-item" data="sac">Sacramento</div>
+    <div class="nav-item" data="la">Los Angeles</div>
+    <div class="nav-item" data="fre">Fresno</div>
+    <div class="nav-item" data="sd">San Diego</div>
+    <div class="nav-item" data="sto">Stockton</div>
+    <div class="nav-item" data="sj">San Jose</div>
+  </div>
+  <div id="legend">
+    <div class="legend-item area-a"><span></span><p>Area A</p></div>
+    <div class="legend-item area-b"><span></span><p>Area B</p></div>
+    <div class="legend-item area-c"><span></span><p>Area C</p></div>
+    <div class="legend-item area-d"><span></span><p>Area D</p></div>
+    <br>
+    <div class="legend-item population circle"><span></span><p>Black Population<br> <em>1 dot = 10 people</em></p></div>
+    <div class="legend-item housing circle"><span></span><p>Public Housing Developments</p></div>
+    <div class="legend-item lowincome circle"><span></span><p>Low Income Housing Tax Credit Properties</p></div>
+
+  </div>
+</div>
+<div id="map"></div>
+</div>
+
+<!-- Replace the value of the key parameter with your own API key. -->
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDuz6J1riJQR6U4r_PSqByGGQQjNQ7SY_8&callback=initMap">
+</script>
+
+
+<script>
+
+
+
+var map;
+function initMap() {
+
+    var usRoadMapType = new google.maps.StyledMapType([
+            {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [
+          { lightness: 75 }
+      ]
+  },{
+      featureType: "all",
+      elementType: "all",
+      stylers: [
+          { saturation: -80 }
+      ]
+  },{
+      featureType: "poi",
+      elementType: "labels",
+      stylers: [
+          { visibility: "off" }
+      ]
+  },{
+      featureType: "landscape",
+      elementType: "labels",
+      stylers: [
+          { visibility: "off" }
+      ]
+  },{
+      featureType: "administrative.locality",
+      elementType: "labels",
+      stylers: [
+          { visibility: "off" }
+      ]
+  },{
+      featureType: "landscape.man_made",
+      elementType: "all",
+      stylers: [
+          { lightness: 75 }
+      ]
+  },{
+      featureType: "administrative.land_parcel",
+      elementType: "labels",
+      stylers: [
+          { visibility: "off" }
+      ]
+  }], {name: 'US Road Atlas'});
+
+  map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 12,
+    center: {lat: 37.7749, lng: -122.4194},
+    mapTypeControlOptions: {
+      mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'usroadatlas']
+    }
+  });
+
+  map.mapTypes.set('usroadatlas', usRoadMapType);
+  map.setMapTypeId('usroadatlas');
+
+
+
+  map.data.loadGeoJson('data/sf.geojson');
+
+     _(population).each(function(it) {
+      var marker = new google.maps.Marker({
+        position: new google.maps.LatLng(parseFloat(it[1]), parseFloat(it[0])),
+        map: map,
+        icon: "black-dot.png"
+      });
+    });
+
+  map.data.loadGeoJson('data/oak.geojson');
+  map.data.loadGeoJson('data/sac.geojson');
+  map.data.loadGeoJson('data/la.geojson');
+  map.data.loadGeoJson('data/fre.geojson');
+  map.data.loadGeoJson('data/sd.geojson');
+  map.data.loadGeoJson('data/sj.geojson');
+  map.data.loadGeoJson('data/sto.geojson');
+  map.data.loadGeoJson('data/housing_ca_small.geojson');
+  map.data.loadGeoJson('data/lowincome_small.geojson');
+
+
+
+
+
+
+  map.data.setStyle(function(feature) {
+
+      if (feature.getProperty('name')){
+          if (feature.getProperty('name').charAt(0) == "A") {
+            color = "#5e8f45"
+          } else if (feature.getProperty('name').charAt(0) == "B") {
+            color = "#36879b"
+          } else if (feature.getProperty('name').charAt(0) == "C") {
+            color = "#e0bc3d"
+          } else if (feature.getProperty('name').charAt(0) == "D") {
+            color = "#d66969"
+          }
+      } else {
+        color = "rgba(0,0,0,0)"
+      }
+
+        if (feature.getProperty('HUD_ID')) {
+          return ({ icon: "yellow-dot.png" });
+        } else {
+          return ({
+            fillColor: color,
+            strokeColor: color,
+            strokeWeight: 1,
+            fillOpacity: .5,
+            icon: "red-dot.png"
+          });
+        }
+      });
+
+
+
+
+  var navItem = $(".nav-item");
+
+  navItem.click(function(e) {
+    var city = $(e.currentTarget).attr("data")
+    $(".nav-item").removeClass("active");
+    $(this).addClass("active");
+    highlightClick(city);
+  });
+
+  var locations = {
+      "oak":  [12,new google.maps.LatLng(37.8044, -122.2711) ],
+      "sf":   [12,new google.maps.LatLng(37.7749,-122.4194)  ],
+      "la":   [11,new google.maps.LatLng(34.0522, -118.2437) ],
+      "sd":   [12,new google.maps.LatLng(32.7157, -117.1611) ],
+      "sj":   [13,new google.maps.LatLng(37.3382, -121.8863) ],
+      "fre":  [13,new google.maps.LatLng(36.7468, -119.7726) ],
+      "sto":  [13,new google.maps.LatLng(37.9577, -121.2908) ],
+      "sac":  [13,new google.maps.LatLng(38.5816,-121.4944) ]
+    };
+
+
+  var highlightClick = function(city) {
+    map.setZoom(locations[city][0]);
+    map.panTo(locations[city][1]);
+  };
+
+}
+
+</script>
+
